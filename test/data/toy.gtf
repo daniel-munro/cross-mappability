@@ -13,3 +13,9 @@ chrTest	RefSeq	CDS	200	225	.	+	0	gene_id "geneB"; transcript_id "txB"; gene "gen
 chrTest	RefSeq	gene	250	275	.	+	.	gene_id "geneC"; gene "geneC"; gene_biotype "lncRNA";
 chrTest	RefSeq	transcript	250	275	.	+	.	gene_id "geneC"; transcript_id "txC"; gene "geneC"; gene_biotype "lncRNA"; transcript_biotype "lnc_RNA";
 chrTest	RefSeq	exon	250	275	.	+	.	gene_id "geneC"; transcript_id "txC"; gene "geneC"; gene_biotype "lncRNA";
+chrTest2	RefSeq	gene	20	95	.	+	.	gene_id "geneD"; gene "geneD"; gene_biotype "protein_coding";
+chrTest2	RefSeq	transcript	20	95	.	+	.	gene_id "geneD"; transcript_id "txD"; gene "geneD"; gene_biotype "protein_coding"; transcript_biotype "mRNA";
+chrTest2	RefSeq	exon	20	55	.	+	.	gene_id "geneD"; transcript_id "txD"; gene "geneD"; gene_biotype "protein_coding";
+chrTest2	RefSeq	exon	70	95	.	+	.	gene_id "geneD"; transcript_id "txD"; gene "geneD"; gene_biotype "protein_coding";
+chrTest2	RefSeq	CDS	25	50	.	+	0	gene_id "geneD"; transcript_id "txD"; gene "geneD"; gene_biotype "protein_coding";
+chrTest2	RefSeq	CDS	75	90	.	+	0	gene_id "geneD"; transcript_id "txD"; gene "geneD"; gene_biotype "protein_coding";

@@ -1,0 +1,18 @@
+reference:
+  fasta: ../ratgtex/ref/GCF_036323735.1_GRCr8_genomic.chr.fa
+  gtf: ../ratgtex/ref/GCF_036323735.1_GRCr8_genomic.chr.gtf
+
+mappability:
+  genmap_bin: genmap
+  threads: 16
+
+params:
+  exon_k: 75
+  utr_k: 36
+  mismatch: 2
+  max_chr: 7
+  max_gene_alignment: 200
+  dir_name_len: 12
+  verbose: 1
+
+output_root: data

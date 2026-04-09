@@ -19,7 +19,7 @@ class PrepareRefseqCrossmapTest(unittest.TestCase):
             if row["attributes"]["gene_id"] == "geneA" and row["feature"] == "UTR"
         ]
         self.assertEqual(gene_a_utrs, [(1, 10), (36, 40), (50, 54), (76, 80)])
-        self.assertEqual(summary["genes_with_utrs"], 2)
+        self.assertEqual(summary["genes_with_utrs"], 3)
 
     def test_noncoding_transcript_has_no_utrs(self):
         transcripts = load_transcripts("test/data/toy.gtf", gene_filter=None)

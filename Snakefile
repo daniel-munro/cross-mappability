@@ -1,4 +1,6 @@
-configfile: "config/config.yaml"
+from pathlib import Path
+
+configfile: "config.yaml"
 
 
 OUTPUT_ROOT = config["output_root"]
@@ -12,20 +14,25 @@ VERBOSE = config["params"]["verbose"]
 CROSSMAP_GTF = f"{OUTPUT_ROOT}/annot/annot.crossmap.gtf"
 ANNOT_TXT = f"{OUTPUT_ROOT}/annot/annot.exon_utr.txt"
 ANNOT_SUMMARY = f"{OUTPUT_ROOT}/annot/annot.summary.json"
-GENOME_SPLIT_DIR = config["reference"]["split_dir"]
-GENOME_SPLIT_MANIFEST = config["reference"]["split_manifest"]
-BOWTIE_PREFIX = config["reference"]["bowtie_index_prefix"]
+GENOME_SPLIT_DIR = f"{OUTPUT_ROOT}/reference/genome_split"
+GENOME_SPLIT_MANIFEST = f"{OUTPUT_ROOT}/reference/genome_split.chromosomes.txt"
+BOWTIE_PREFIX = f"{OUTPUT_ROOT}/reference/bowtie_index/bowtie_index"
+GENMAP_BIN = config["mappability"]["genmap_bin"]
+GENMAP_INDEX_DIR = f"{OUTPUT_ROOT}/reference/genmap_index"
+GENMAP_THREADS = config["mappability"]["threads"]
+MAPPABILITY_DIR = f"{OUTPUT_ROOT}/reference/mappability"
+BEDGRAPH_TEMPLATE = f"{MAPPABILITY_DIR}/rat_{{k}}mer_mappability.bedgraph"
+EXON_BEDGRAPH = BEDGRAPH_TEMPLATE.format(k=EXON_K)
+UTR_BEDGRAPH = BEDGRAPH_TEMPLATE.format(k=UTR_K)
 GENE_MAPPABILITY = f"{OUTPUT_ROOT}/gene_mappability/gene_mappability.txt"
 GENE_MAPPABILITY_INFO = f"{GENE_MAPPABILITY}.info"
 AMBIGUOUS_KMERS_DIR = f"{OUTPUT_ROOT}/ambiguous_kmers"
-KMER_FASTA_READY = f"{OUTPUT_ROOT}/ambiguous_kmers/.fasta_complete"
+KMER_FASTA_READY = f"{OUTPUT_ROOT}/flags/ambiguous_kmers_fasta_complete.txt"
 ALIGNMENT_DIR = f"{OUTPUT_ROOT}/ambiguous_kmers_alignment"
 CROSSMAP_DIR = f"{OUTPUT_ROOT}/cross_mappability"
 COMBINED_CROSSMAP = f"{OUTPUT_ROOT}/cross_mappability.tsv"
-RUN_METADATA = f"{OUTPUT_ROOT}/run_metadata.json"
 POS2GENE_READY = f"{CROSSMAP_DIR}/pos2gene/.init_complete"
 CROSSMAP_COMPLETE = f"{CROSSMAP_DIR}/.complete"
-CONFIG_PATH = workflow.overwrite_configfiles[0] if workflow.overwrite_configfiles else "config/config.yaml"
 
 BOWTIE_INDEX_FILES = [
     f"{BOWTIE_PREFIX}.1.ebwt",
@@ -36,15 +43,15 @@ BOWTIE_INDEX_FILES = [
     f"{BOWTIE_PREFIX}.rev.2.ebwt",
 ]
 
-
 rule all:
     input:
         CROSSMAP_GTF,
         ANNOT_TXT,
+        EXON_BEDGRAPH,
+        UTR_BEDGRAPH,
         GENE_MAPPABILITY,
         GENE_MAPPABILITY_INFO,
         COMBINED_CROSSMAP,
-        RUN_METADATA,
 
 
 rule split_reference_fasta:
@@ -74,6 +81,24 @@ rule build_bowtie_index:
         """
         mkdir -p $(dirname {params.prefix})
         bowtie-build {input.fasta} {params.prefix}
+        """
+
+
+rule build_genmap_index:
+    input:
+        fasta=config["reference"]["fasta"]
+    output:
+        directory(GENMAP_INDEX_DIR)
+    params:
+        index_parent=lambda wildcards, output: str(Path(str(output[0])).parent)
+    resources:
+        mem_mb=32000,
+    shell:
+        """
+        mkdir -p {params.index_parent}
+        {GENMAP_BIN} index \
+            -F {input.fasta} \
+            -I {output}
         """
 
 
@@ -108,14 +133,39 @@ rule gtf_to_txt:
         """
 
 
+rule genmap_bedgraph:
+    input:
+        index=GENMAP_INDEX_DIR
+    output:
+        bedgraph=BEDGRAPH_TEMPLATE
+    params:
+        prefix=lambda wildcards, output: str(output.bedgraph).removesuffix(".bedgraph")
+    resources:
+        mem_mb=32000,
+    threads: GENMAP_THREADS
+    shell:
+        """
+        mkdir -p $(dirname {output.bedgraph})
+        {GENMAP_BIN} map \
+            -I {GENMAP_INDEX_DIR} \
+            -O {params.prefix} \
+            -E {MISMATCH} \
+            -K {wildcards.k} \
+            -bg \
+            -T {GENMAP_THREADS}
+        """
+
+
 rule compute_mappability:
     input:
         annot=ANNOT_TXT,
-        exon_bedgraph=config["mappability"]["exon_bedgraph"],
-        utr_bedgraph=config["mappability"]["utr_bedgraph"]
+        exon_bedgraph=EXON_BEDGRAPH,
+        utr_bedgraph=UTR_BEDGRAPH
     output:
         txt=GENE_MAPPABILITY,
         info=GENE_MAPPABILITY_INFO
+    resources:
+        mem_mb=64000,
     shell:
         """
         mkdir -p $(dirname {output.txt})
@@ -135,13 +185,13 @@ rule generate_ambiguous_kmers:
         annot=ANNOT_TXT,
         mappability=GENE_MAPPABILITY,
         genome_dir=GENOME_SPLIT_DIR,
-        exon_bedgraph=config["mappability"]["exon_bedgraph"],
-        utr_bedgraph=config["mappability"]["utr_bedgraph"]
+        exon_bedgraph=EXON_BEDGRAPH,
+        utr_bedgraph=UTR_BEDGRAPH
     output:
         directory(AMBIGUOUS_KMERS_DIR)
     shell:
         """
-        mkdir -p {output}
+        mkdir -p {AMBIGUOUS_KMERS_DIR}
         Rscript scripts/crossmap/generate_ambiguous_kmers.R \
             -mappability {input.mappability} \
             -genome {input.genome_dir} \
@@ -154,7 +204,7 @@ rule generate_ambiguous_kmers:
             -th2 1 \
             -dir_name_len {DIR_NAME_LEN} \
             -verbose {VERBOSE} \
-            -o {output}
+            -o {AMBIGUOUS_KMERS_DIR}
         """
 
 
@@ -168,9 +218,7 @@ rule init_crossmap_resources:
         POS2GENE_READY
     shell:
         """
-        mkdir -p {ALIGNMENT_DIR}
-        mkdir -p {CROSSMAP_DIR}
-        mkdir -p $(dirname {output})
+        mkdir -p {ALIGNMENT_DIR} {CROSSMAP_DIR} $(dirname {POS2GENE_READY})
         Rscript scripts/crossmap/compute_cross_mappability.R \
             -annot {input.annot} \
             -mappability {input.mappability} \
@@ -184,7 +232,7 @@ rule init_crossmap_resources:
             -dir_name_len {DIR_NAME_LEN} \
             -verbose {VERBOSE} \
             -o {CROSSMAP_DIR}
-        touch {output}
+        touch {POS2GENE_READY}
         """
 
 
@@ -211,8 +259,7 @@ rule compute_crossmap:
         CROSSMAP_COMPLETE
     shell:
         """
-        mkdir -p {ALIGNMENT_DIR}
-        mkdir -p {CROSSMAP_DIR}
+        mkdir -p {ALIGNMENT_DIR} {CROSSMAP_DIR}
         Rscript scripts/crossmap/compute_cross_mappability.R \
             -annot {input.annot} \
             -mappability {input.mappability} \
@@ -226,7 +273,7 @@ rule compute_crossmap:
             -dir_name_len {DIR_NAME_LEN} \
             -verbose {VERBOSE} \
             -o {CROSSMAP_DIR}
-        touch {output}
+        touch {CROSSMAP_COMPLETE}
         """
 
 
@@ -239,17 +286,5 @@ rule combine_crossmap:
         """
         python3 scripts/setup/combine_crossmap.py \
             --crossmap-dir {CROSSMAP_DIR} \
-            --output {output}
-        """
-
-
-rule write_run_metadata:
-    output:
-        RUN_METADATA
-    shell:
-        """
-        mkdir -p $(dirname {output})
-        python3 scripts/setup/write_run_metadata.py \
-            --config {CONFIG_PATH} \
             --output {output}
         """
