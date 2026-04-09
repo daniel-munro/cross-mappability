@@ -1,0 +1,3 @@
+[submodule "scripts/crossmap"]
+	path = scripts/crossmap
+	url = https://github.com/battle-lab/crossmap.git

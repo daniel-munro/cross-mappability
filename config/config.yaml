@@ -1,0 +1,21 @@
+reference:
+  fasta: ../ratgtex/ref/GCF_036323735.1_GRCr8_genomic.chr.fa
+  gtf: ../ratgtex/ref/GCF_036323735.1_GRCr8_genomic.chr.gtf
+  split_dir: results/rat/reference/genome_split
+  split_manifest: results/rat/reference/genome_split.chromosomes.txt
+  bowtie_index_prefix: results/rat/reference/bowtie_index/rat_gcr8
+
+mappability:
+  exon_bedgraph: data/rat/rat_75mer_mappability.bedgraph
+  utr_bedgraph: data/rat/rat_36mer_mappability.bedgraph
+
+params:
+  exon_k: 75
+  utr_k: 36
+  mismatch: 2
+  max_chr: 7
+  max_gene_alignment: 200
+  dir_name_len: 12
+  verbose: 1
+
+output_root: results/rat

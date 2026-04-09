@@ -1,0 +1,15 @@
+chrTest	RefSeq	gene	1	80	.	+	.	gene_id "geneA"; gene "geneA"; gene_biotype "protein_coding";
+chrTest	RefSeq	transcript	1	80	.	+	.	gene_id "geneA"; transcript_id "txA"; gene "geneA"; gene_biotype "protein_coding"; transcript_biotype "mRNA";
+chrTest	RefSeq	exon	1	40	.	+	.	gene_id "geneA"; transcript_id "txA"; gene "geneA"; gene_biotype "protein_coding";
+chrTest	RefSeq	exon	50	80	.	+	.	gene_id "geneA"; transcript_id "txA"; gene "geneA"; gene_biotype "protein_coding";
+chrTest	RefSeq	CDS	11	35	.	+	0	gene_id "geneA"; transcript_id "txA"; gene "geneA"; gene_biotype "protein_coding";
+chrTest	RefSeq	CDS	55	75	.	+	0	gene_id "geneA"; transcript_id "txA"; gene "geneA"; gene_biotype "protein_coding";
+chrTest	RefSeq	gene	140	230	.	+	.	gene_id "geneB"; gene "geneB"; gene_biotype "protein_coding";
+chrTest	RefSeq	transcript	140	230	.	+	.	gene_id "geneB"; transcript_id "txB"; gene "geneB"; gene_biotype "protein_coding"; transcript_biotype "mRNA";
+chrTest	RefSeq	exon	140	185	.	+	.	gene_id "geneB"; transcript_id "txB"; gene "geneB"; gene_biotype "protein_coding";
+chrTest	RefSeq	exon	195	230	.	+	.	gene_id "geneB"; transcript_id "txB"; gene "geneB"; gene_biotype "protein_coding";
+chrTest	RefSeq	CDS	145	180	.	+	0	gene_id "geneB"; transcript_id "txB"; gene "geneB"; gene_biotype "protein_coding";
+chrTest	RefSeq	CDS	200	225	.	+	0	gene_id "geneB"; transcript_id "txB"; gene "geneB"; gene_biotype "protein_coding";
+chrTest	RefSeq	gene	250	275	.	+	.	gene_id "geneC"; gene "geneC"; gene_biotype "lncRNA";
+chrTest	RefSeq	transcript	250	275	.	+	.	gene_id "geneC"; transcript_id "txC"; gene "geneC"; gene_biotype "lncRNA"; transcript_biotype "lnc_RNA";
+chrTest	RefSeq	exon	250	275	.	+	.	gene_id "geneC"; transcript_id "txC"; gene "geneC"; gene_biotype "lncRNA";
