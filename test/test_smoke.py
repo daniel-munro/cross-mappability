@@ -3,6 +3,7 @@ import subprocess
 import tempfile
 import textwrap
 import unittest
+import gzip
 from pathlib import Path
 
 
@@ -65,7 +66,7 @@ class WorkflowSmokeTest(unittest.TestCase):
                 check=True,
             )
 
-            combined = output_root / "cross_mappability.tsv"
+            combined = output_root / "cross_mappability.tsv.gz"
             exon_bedgraph = output_root / "reference/mappability/rat_5mer_mappability.bedgraph"
             utr_bedgraph = output_root / "reference/mappability/rat_3mer_mappability.bedgraph"
 
@@ -73,8 +74,8 @@ class WorkflowSmokeTest(unittest.TestCase):
             self.assertTrue(utr_bedgraph.exists())
             self.assertTrue(combined.exists())
 
-            crossmap_lines = combined.read_text().splitlines()
-            self.assertEqual(crossmap_lines[0], "G1\tG2\tS1")
+            with gzip.open(combined, "rt") as handle:
+                crossmap_lines = handle.read().splitlines()
             self.assertGreater(len(crossmap_lines), 1)
 
 

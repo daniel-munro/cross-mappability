@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import gzip
 from pathlib import Path
 
 
@@ -12,8 +13,8 @@ def main() -> None:
 
     crossmap_dir = Path(args.crossmap_dir)
     paths = sorted(crossmap_dir.rglob("*.crossmap.txt"))
-    with open(args.output, "w") as out_handle:
-        out_handle.write("G1\tG2\tS1\n")
+    with gzip.open(args.output, "wt") as out_handle:
+        # out_handle.write("G1\tG2\tS1\n")
         for path in paths:
             with path.open() as in_handle:
                 for line in in_handle:

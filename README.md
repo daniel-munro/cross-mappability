@@ -49,7 +49,7 @@ The default targets are:
 - `results/rat/annot/annot.crossmap.gtf`
 - `results/rat/annot/annot.exon_utr.txt`
 - `results/rat/gene_mappability/gene_mappability.txt`
-- `results/rat/cross_mappability.tsv`
+- `results/rat/cross_mappability.tsv.gz`
 
 ## Configuration
 
@@ -87,3 +87,33 @@ Python unit and smoke tests:
 python -m unittest test.test_prepare_refseq_crossmap
 python -m unittest test.test_smoke
 ```
+
+## Validation
+
+If `data/validate/hg38_cross_mappability_strength.txt.gz` is present, the
+workflow can generate a validation report at
+`data/validate/crossmap_validation.md` with:
+
+```bash
+snakemake --cores 1 data/validate/crossmap_validation.md
+```
+
+An ortholog-based gene-level comparison can be generated with:
+
+```bash
+snakemake --cores 1 data/validate/crossmap_ortholog_comparison.md
+```
+
+That report does two things:
+
+- compares the rat cross-mappability graph against the downloaded human
+  reference using graph-level summaries that do not require ortholog mapping
+- checks internal consistency in rat by confirming that low-mappability genes
+  carry much more outgoing cross-mappability burden than high-mappability genes
+
+This is intended as a first-pass reassurance step. A stricter species-to-species
+validation would require an explicit ortholog table.
+
+The ortholog-based report fetches human-rat orthologs from Ensembl REST,
+restricts to one-to-one orthologs, and compares rat and human gene-level
+cross-mappability burdens on the shared set.
